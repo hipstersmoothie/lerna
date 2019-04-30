@@ -60,6 +60,8 @@ function packDirectory(_pkg, dir, _opts) {
       files.map(f => `./${f}`)
     )
   );
+  console.log(getTarballName(pkg));
+  console.log(pkg);
   chain = chain.then(stream => tempWrite(stream, getTarballName(pkg)));
   chain = chain.then(tarFilePath =>
     getPacked(pkg, tarFilePath).then(packed =>

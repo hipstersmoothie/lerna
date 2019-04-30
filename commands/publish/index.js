@@ -593,12 +593,15 @@ class PublishCommand extends Command {
     const getLocation = contents ? pkg => path.resolve(pkg.location, contents) : pkg => pkg.location;
 
     const opts = this.conf.snapshot;
+
     const mapper = pPipe(
       [
         this.options.requireScripts && (pkg => this.execScript(pkg, "prepublish")),
 
-        pkg =>
-          pulseTillDone(packDirectory(pkg, getLocation(pkg), opts)).then(packed => {
+        pkg => {
+          console.log(pkg);
+          console.log(getLocation(pkg));
+          return pulseTillDone(packDirectory(pkg, getLocation(pkg), opts)).then(packed => {
             tracker.verbose("packed", pkg.name, path.relative(this.project.rootPath, getLocation(pkg)));
             tracker.completeWork(1);
 
@@ -607,7 +610,8 @@ class PublishCommand extends Command {
 
             // manifest may be mutated by any previous lifecycle
             return pkg.refresh();
-          }),
+          });
+        },
       ].filter(Boolean)
     );
 
@@ -642,15 +646,18 @@ class PublishCommand extends Command {
 
     const mapper = pPipe(
       [
-        pkg =>
-          pulseTillDone(npmPublish(pkg, pkg.packed.tarFilePath, opts)).then(() => {
+        pkg => {
+          console.log(pkg);
+
+          return pulseTillDone(npmPublish(pkg, pkg.packed.tarFilePath, opts)).then(() => {
             tracker.success("published", pkg.name, pkg.version);
             tracker.completeWork(1);
 
             logPacked(pkg.packed);
 
             return pkg;
-          }),
+          });
+        },
 
         this.options.requireScripts && (pkg => this.execScript(pkg, "postpublish")),
       ].filter(Boolean)
